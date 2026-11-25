@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HomeoLite | FY BHMS Clinical & Repertory Demo</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #f3f9f6 0%, #eef5f9 100%);
+      color: #1e3a3a;
+      margin: 0;
+      padding: 24px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Floating Emojis */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .floater {
+      position: absolute;
+      bottom: -60px;
+      font-size: 1.8rem;
+      opacity: 0.22;
+      animation: floatUp linear infinite;
+      user-select: none;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+      15% { opacity: 0.25; }
+      85% { opacity: 0.25; }
+      100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+    }
+
+    .container {
+      max-width: 960px;
+      margin: auto;
+      position: relative;
+      z-index: 1;
+    }
+    header {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 3px solid #2ca58d;
+      padding: 18px 24px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(20, 60, 60, 0.06);
+    }
+    h1 { margin: 0 0 4px 0; color: #165b53; font-size: 1.65rem; }
+    header small { color: #527373; font-weight: 500; }
+
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab-btn {
+      background: #ffffff;
+      color: #1e4d48;
+      border: 1px solid #cde0dc;
+      padding: 10px 18px;
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+    .tab-btn:hover { background: #e8f5f1; }
+    .tab-btn.active {
+      background: #2ca58d;
+      color: #ffffff;
+      border-color: #2ca58d;
+      box-shadow: 0 4px 10px rgba(44, 165, 141, 0.25);
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid #d8e8e4;
+      box-shadow: 0 8px 24px rgba(22, 91, 83, 0.07);
+      display: none;
+    }
+    .card.active { display: block; }
+    h2 { margin-top: 0; color: #165b53; }
+    h3 { color: #226f65; margin-top: 20px; }
+
+    label { display: block; margin-top: 12px; font-weight: 600; color: #2b5450; }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      background: #f6fbf9;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #dcebe7;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .checkbox-label:hover { background: #eaf6f2; }
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #bfd8d2;
+      background: #ffffff;
+      color: #1e3a3a;
+      font-size: 0.95rem;
+    }
+    button.action {
+      background: #165b53;
+      color: #ffffff;
+      border: none;
+      padding: 11px 20px;
+      border-radius: 8px;
+      margin-top: 16px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+    }
+    button.action:hover { background: #2ca58d; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; }
+    th, td { border: 1px solid #d8e8e4; padding: 11px; text-align: left; }
+    th { background: #eef7f4; color: #165b53; }
+    .badge {
+      background: #d9f2ea;
+      color: #115e54;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    pre {
+      background: #f4faf8;
+      color: #1c3d3a;
+      padding: 15px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      border-left: 4px solid #2ca58d;
+      border-top: 1px solid #dcebe7;
+      border-right: 1px solid #dcebe7;
+      border-bottom: 1px solid #dcebe7;
+      font-family: 'Consolas', monospace;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Ambient Emojis -->
+  <div class="ambient-bg" id="ambient-bg"></div>
+
+  <div class="container">
+    <header>
+      <h1>🌿 HomeoLite — FY BHMS Student Clinical Sandbox</h1>
+      <small>Interactive Educational Demo • Zero Patient Identifiers • Open-Source on GitHub</small>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="openTab('repertory', this)">1. 📖 Mini-Repertory</button>
+      <button class="tab-btn" onclick="openTab('pharmacy', this)">2. 💊 Medicines & Pharmacy</button>
+      <button class="tab-btn" onclick="openTab('records', this)">3. 📋 Patient Case Record</button>
+      <button class="tab-btn" onclick="openTab('comm', this)">4. 💬 Patient & Peer Comm</button>
+    </div>
+
+    <!-- TAB 1: REPERTORY -->
+    <div id="repertory" class="card active">
+      <h2>Symptom-to-Rubric Repertorization</h2>
+      <p>Select observed patient symptoms to calculate remedy grades (Hypothetical Rubric Engine):</p>
+      <div id="rubric-list"></div>
+      <button class="action" onclick="repertorize()">Calculate Totality Score</button>
+      <div id="rep-result"></div>
+    </div>
+
+    <!-- TAB 2: MEDICINES & PHARMACY -->
+    <div id="pharmacy" class="card">
+      <h2>Materia Medica & Pharmacy Dispensing Log</h2>
+      <table>
+        <thead>
+          <tr><th>Remedy</th><th>Source (Pharmacy)</th><th>Stock Potencies</th><th>Keynote Indications</th></tr>
+        </thead>
+        <tbody id="med-table"></tbody>
+      </table>
+      <h3>Prepare Dispensing Order (Simillimum / Formulation)</h3>
+      <label>Select Medicine:</label>
+      <select id="disp-med">
+        <option value="Natrum Muriaticum">Natrum Muriaticum</option>
+        <option value="Bryonia Alba">Bryonia Alba</option>
+        <option value="Nux Vomica">Nux Vomica</option>
+      </select>
+      <label>Potency & Scale (Organon §270):</label>
+      <select id="disp-potency">
+        <option value="30C (Centesimal)">30C (Centesimal)</option>
+        <option value="200C (Centesimal)">200C (Centesimal)</option>
+        <option value="0/1 (LM / 50 Millesimal)">0/1 (LM / 50 Millesimal)</option>
+        <option value="Q (Mother Tincture)">Q (Mother Tincture)</option>
+      </select>
+      <label>Vehicle & Dispensing Form:</label>
+      <input type="text" id="disp-vehicle" value="Size 30 Poppy-seed Globules, 4 pills BD x 7 days" />
+      <button class="action" onclick="generateLabel()">Generate Pharmacy Dispensing Label</button>
+      <pre id="label-output">Label preview will appear here...</pre>
+    </div>
+
+    <!-- TAB 3: PATIENT RECORD -->
+    <div id="records" class="card">
+      <h2>Anonymized Student OPD Register</h2>
+      <label>Anonymized Case ID (Never enter real patient names):</label>
+      <input type="text" id="case-id" value="PT-2026-04" />
+      <label>Chief Complaint & Modalities:</label>
+      <textarea id="case-notes" rows="3">Right-sided throbbing headache < sun exposure, > dark quiet room. Craves salt.</textarea>
+      <label>Selected Remedy & Potency:</label>
+      <input type="text" id="case-rx" value="Natrum Muriaticum 200C / 1 Dose" />
+      <button class="action" onclick="saveCase()">Add to Session Register</button>
+      <table>
+        <thead><tr><th>Case ID</th><th>Clinical Summary</th><th>Prescription</th></tr></thead>
+        <tbody id="case-table">
+          <tr><td>PT-2026-01</td><td>Dry cough &lt; motion, intense thirst</td><td>Bryonia Alba 30C</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TAB 4: COMMUNICATION -->
+    <div id="comm" class="card">
+      <h2>Automated Patient & Peer Communication</h2>
+      <button class="action" onclick="buildComms()">Generate Outputs from Active Case</button>
+      <h3>A. Plain-Language Patient Instruction (WhatsApp/SMS Ready)</h3>
+      <pre id="patient-msg">Click generate to draft patient instructions...</pre>
+      <h3>B. De-Identified Case Presentation for Faculty / Peer Review</h3>
+      <pre id="peer-msg">Click generate to draft mentor summary...</pre>
+    </div>
+  </div>
+
+<script>
+  // GENERATE AMBIENT FLOATING EMOJIS
+  const emojis = ['🌿', '💊', '🩺', '🔬', '📖', '✨', '🌱', '⚕️'];
+  const ambientBg = document.getElementById('ambient-bg');
+  for (let i = 0; i < 18; i++) {
+    const span = document.createElement('span');
+    span.className = 'floater';
+    span.textContent = emojis[i % emojis.length];
+    span.style.left = Math.random() * 95 + 'vw';
+    span.style.animationDuration = (14 + Math.random() * 14) + 's';
+    span.style.animationDelay = (Math.random() * 12) + 's';
+    span.style.fontSize = (1.3 + Math.random() * 1.1) + 'rem';
+    ambientBg.appendChild(span);
+  }
+
+  // HYPOTHETICAL KNOWLEDGE BASE
+  const medicines = [
+    { name: "Natrum Muriaticum", source: "Mineral (NaCl)", potencies: "30C, 200C, 1M, LM 0/1", keynotes: "Headache < sun; craves salt; averse to consolation." },
+    { name: "Bryonia Alba", source: "Vegetable (Wild Hops)", potencies: "Q, 6C, 30C, 200C", keynotes: "All complaints < slightest motion; > pressure; large thirst." },
+    { name: "Nux Vomica", source: "Vegetable (Strychnos)", potencies: "30C, 200C", keynotes: "Chilly, irritable, oversensitive; gastric upset from stimulants." }
+  ];
+
+  const rubrics = [
+    { id: "r1", text: "HEAD - PAIN - Sun; from exposure to", scores: { "Natrum Muriaticum": 3, "Bryonia Alba": 2, "Nux Vomica": 1 } },
+    { id: "r2", text: "STOMACH - DESIRES - salt", scores: { "Natrum Muriaticum": 3 } },
+    { id: "r3", text: "GENERALS - MOTION - aggravates", scores: { "Bryonia Alba": 3, "Nux Vomica": 2, "Natrum Muriaticum": 1 } },
+    { id: "r4", text: "MIND - IRRITABILITY", scores: { "Nux Vomica": 3, "Bryonia Alba": 3, "Natrum Muriaticum": 2 } },
+    { id: "r5", text: "MIND - CONSOLATION - aggravates", scores: { "Natrum Muriaticum": 3 } }
+  ];
+
+  // INITIALIZE UI
+  const rList = document.getElementById("rubric-list");
+  rubrics.forEach(r => {
+    rList.innerHTML += `<label class="checkbox-label"><input type="checkbox" value="${r.id}" style="margin-right:10px;"> ${r.text}</label>`;
+  });
+
+  const mTable = document.getElementById("med-table");
+  medicines.forEach(m => {
+    mTable.innerHTML += `<tr><td><strong>${m.name}</strong></td><td>${m.source}</td><td>${m.potencies}</td><td>${m.keynotes}</td></tr>`;
+  });
+
+  function openTab(id, btn) {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function repertorize() {
+    const checked = [...document.querySelectorAll('#rubric-list input:checked')].map(i => i.value);
+    const totals = { "Natrum Muriaticum": 0, "Bryonia Alba": 0, "Nux Vomica": 0 };
+    checked.forEach(id => {
+      const rub = rubrics.find(r => r.id === id);
+      for (let med in rub.scores) totals[med] += rub.scores[med];
+    });
+    const sorted = Object.entries(totals).sort((a,b) => b[1] - a[1]);
+    let html = `<h3>Repertorization Result:</h3><table><tr><th>Remedy</th><th>Totality Score</th></tr>`;
+    sorted.forEach(([med, score]) => html += `<tr><td><strong>${med}</strong></td><td><span class="badge">${score} pts</span></td></tr>`);
+    html += `</table>`;
+    document.getElementById("rep-result").innerHTML = html;
+  }
+
+  function generateLabel() {
+    const med = document.getElementById("disp-med").value;
+    const pot = document.getElementById("disp-potency").value;
+    const veh = document.getElementById("disp-vehicle").value;
+    document.getElementById("label-output").textContent =
+      `=== BHMS TEACHING PHARMACY LABEL ===\nRemedy : ${med}\nPotency: ${pot}\nDose   : ${veh}\nNote   : Keep away from strong odors (camphor/coffee).`;
+  }
+
+  function saveCase() {
+    const id = document.getElementById("case-id").value;
+    const notes = document.getElementById("case-notes").value;
+    const rx = document.getElementById("case-rx").value;
+    document.getElementById("case-table").innerHTML += `<tr><td><strong>${id}</strong></td><td>${notes}</td><td>${rx}</td></tr>`;
+  }
+
+  function buildComms() {
+    const id = document.getElementById("case-id").value;
+    const notes = document.getElementById("case-notes").value;
+    const rx = document.getElementById("case-rx").value;
+    document.getElementById("patient-msg").textContent =
+      `Hello! Your prescription (${rx}) is ready.\n• Take 4 globules on a clean tongue 15 mins before food.\n• Avoid raw onion, garlic, coffee, or camphor near the medicine.\n• Follow-up scheduled in 14 days.`;
+    document.getElementById("peer-msg").textContent =
+      `PEER REVIEW SUMMARY [De-identified ID: ${id}]\n• Totality & Modalities: ${notes}\n• Proposed Simillimum: ${rx}\n• Query for Mentor: Please validate potency repetition schedule.`;
+  }
+</script>
+</body>
+</html>
